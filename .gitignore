@@ -1,6 +1,5 @@
-node_modules
-.env
-dist
-.env.example
-readme1.md
-README.md
+node_modules/
+.env /
+.env.example /
+readme1.md /
+README.md 
