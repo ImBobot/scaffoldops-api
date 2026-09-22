@@ -112,9 +112,14 @@
   .stat .lbl{ font-size:12px; color:var(--steel); margin-top:6px; }
   .modal-backdrop{ position:fixed; inset:0; background:rgba(28,35,33,.5); display:none; align-items:flex-start; justify-content:center; padding:40px 16px; overflow-y:auto; z-index:50; }
   .modal-backdrop.open{ display:flex; }
-  .modal{ background:var(--paper); border:1px solid var(--border); border-radius:var(--radius); max-width:560px; width:100%; padding:24px; }
-  .modal h2{ font-family:var(--font-head); font-size:19px; margin:0 0 14px; }
-  .modal-close{ float:right; background:none; border:none; font-size:20px; cursor:pointer; color:var(--steel); line-height:1; }
+  .modal{ position:relative; background:var(--paper); border:1px solid var(--border); border-radius:var(--radius); max-width:560px; width:100%; padding:24px; }
+  .modal h2{ font-family:var(--font-head); font-size:19px; margin:0 0 14px; padding-right:34px; }
+  .modal-close{
+  position:absolute; top:12px; right:12px; width:36px; height:36px;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--concrete); border:1px solid var(--border); border-radius:50%;
+  font-size:20px; line-height:1; cursor:pointer; color:var(--steel);}
+.modal-close:hover, .modal-close:active{ background:var(--concrete-dark); color:var(--ink); }
   .scafftag{ width:150px; border:3px solid var(--ink); border-radius:4px; overflow:hidden; font-family:var(--font-mono); background:var(--white); }
   .scafftag .head{ padding:7px 8px 5px; text-align:center; font-family:var(--font-head); font-weight:800; font-size:11px; letter-spacing:.04em; }
   .scafftag.green .head{ background:var(--green); color:#fff; } .scafftag.yellow .head{ background:var(--yellow); color:#fff; } .scafftag.red .head{ background:var(--red); color:#fff; }
