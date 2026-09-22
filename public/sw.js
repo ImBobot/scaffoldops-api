@@ -1,7 +1,7 @@
 // ScaffoldOps NZ — service worker
 // Caches the static app shell so the dashboard opens instantly and installs
 // as a PWA. API calls always go to the network — data must stay live.
-const CACHE = 'scaffoldops-shell-v3';
+const CACHE = 'scaffoldops-shell-v5';
 const SHELL_ASSETS = [
   '/',
   '/manifest.json',
