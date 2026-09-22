@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>ScaffoldOps NZ</title>
+<link rel="icon" type="image/png" href="/assets/favicon-32.png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#1C2321">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ScaffoldOps">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.js"></script>
+<style>
+  :root{
+    --ink:#1C2321; --steel:#445159; --steel-light:#7C8A90;
+    --safety:#F2A007; --safety-dark:#C97F00;
+    --concrete:#EFEBE2; --concrete-dark:#DED7C7; --paper:#FBF9F4; --white:#ffffff;
+    --green:#2E7D4F; --green-bg:#E4F1E8;
+    --yellow:#B8860B; --yellow-bg:#FBF1D8;
+    --red:#B3402A; --red-bg:#F7E4DF;
+    --border:#CFC7B4;
+    --font-head:'Archivo',sans-serif; --font-body:'Inter',sans-serif; --font-mono:'JetBrains Mono',monospace;
+    --radius:3px;
+  }
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--concrete); color:var(--ink); font-family:var(--font-body); min-height:100vh; }
+  ::selection{ background:var(--safety); color:var(--ink); }
+  .shell{ display:flex; min-height:100%; }
+  .side{ width:220px; flex-shrink:0; background:var(--ink); color:var(--paper); display:flex; flex-direction:column; position:sticky; top:0; height:100vh; z-index:45; }
+  .brand{ padding:22px 18px 16px; border-bottom:1px solid rgba(255,255,255,.12); }
+  .brand .mark{ font-family:var(--font-head); font-weight:800; font-size:19px; letter-spacing:.3px; color:var(--paper); line-height:1.1; }
+  .brand .mark span{ color:var(--safety); }
+  .brand .sub{ font-family:var(--font-mono); font-size:10.5px; color:var(--steel-light); margin-top:5px; }
+  nav{ padding:10px 10px; flex:1; overflow-y:auto; }
+  .nav-item{ display:flex; align-items:center; gap:10px; width:100%; text-align:left; padding:12px 10px; border-radius:var(--radius); border:none; background:transparent; color:#CFCABF; font-family:var(--font-body); font-size:14px; font-weight:500; cursor:pointer; margin-bottom:2px; }
+  .nav-item .n{ font-family:var(--font-mono); font-size:10px; color:var(--steel-light); width:16px; flex-shrink:0; }
+  .nav-item:hover{ background:rgba(255,255,255,.06); color:var(--paper); }
+  .nav-item.active{ background:var(--safety); color:var(--ink); font-weight:600; }
+  .nav-item.active .n{ color:var(--ink); opacity:.6; }
+  .side-foot{ padding:14px 18px calc(14px + env(safe-area-inset-bottom, 0px)); border-top:1px solid rgba(255,255,255,.12); font-size:11.5px; color:var(--steel-light); }
+  .side-foot .who{ color:var(--paper); font-weight:600; margin-bottom:2px; }
+  .side-foot .role{ text-transform:capitalize; }
+  .side-foot button{ background:none; border:none; color:var(--safety); font-size:12px; font-weight:600; cursor:pointer; padding:0; margin-top:8px; }
+  main{ flex:1; min-width:0; padding:28px 34px 60px; }
+  .page-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:22px; flex-wrap:wrap; gap:10px; }
+  .page-head h1{ font-family:var(--font-head); font-size:26px; margin:0; letter-spacing:.2px; }
+  .page-head .desc{ color:var(--steel); font-size:13.5px; margin-top:4px; max-width:60ch; }
+  .btn{ font-family:var(--font-body); font-weight:600; font-size:13px; border-radius:var(--radius); border:1px solid var(--ink); background:var(--ink); color:var(--paper); padding:11px 16px; cursor:pointer; min-height:40px; }
+  .btn:hover{ background:var(--steel); border-color:var(--steel); }
+  .btn.secondary{ background:transparent; color:var(--ink); border:1px solid var(--border); }
+  .btn.secondary:hover{ background:var(--white); }
+  .btn.warn{ background:var(--safety); border-color:var(--safety); color:var(--ink); }
+  .btn.warn:hover{ background:var(--safety-dark); }
+  .btn:disabled{ opacity:.5; cursor:not-allowed; }
+  .btn.small{ padding:7px 10px; font-size:12px; min-height:32px; }
+  .card{ background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:18px; overflow-x:auto; }
+  .grid{ display:grid; gap:14px; }
+  .grid.cols-2{ grid-template-columns:1fr 1fr; }
+  .grid.cols-3{ grid-template-columns:repeat(3,1fr); }
+  .grid.cols-4{ grid-template-columns:repeat(4,1fr); }
+  table{ min-width:460px; }
+
+  /* ---- Mobile top bar + slide-in drawer nav ---- */
+  .mobile-topbar{ display:none; }
+  .side-backdrop{ display:none; }
+  @media(max-width:900px){
+    html,body{ height:100%; }
+    .grid.cols-2,.grid.cols-3,.grid.cols-4{ grid-template-columns:1fr; }
+    .shell{ flex-direction:column; min-height:100vh; }
+    main{ padding:18px 14px 50px; }
+    .mobile-topbar{
+      display:flex; align-items:center; gap:10px;
+      background:var(--ink); color:var(--paper);
+      padding:calc(12px + env(safe-area-inset-top, 0px)) 16px 12px;
+      position:sticky; top:0; z-index:40;
+    }
+    .mobile-topbar img{ width:24px; height:24px; }
+    .mobile-topbar .title{ font-family:var(--font-head); font-weight:800; font-size:15px; letter-spacing:.3px; }
+    .mobile-topbar .title span{ color:var(--safety); }
+    .hamburger{ background:none; border:none; color:var(--paper); font-size:22px; line-height:1; padding:4px 6px; cursor:pointer; margin-right:2px; }
+    .side{
+      position:fixed; left:0; top:0; height:100%; width:250px;
+      transform:translateX(-100%); transition:transform .25s ease;
+      padding-top:env(safe-area-inset-top, 0px);
+    }
+    .side.open{ transform:translateX(0); box-shadow:4px 0 24px rgba(0,0,0,.35); }
+    .side-backdrop.open{ display:block; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:44; }
+  }
+  label{ display:block; font-size:12px; font-weight:600; color:var(--steel); margin-bottom:4px; }
+  input,select,textarea{ width:100%; font-family:var(--font-body); font-size:16px; padding:11px 10px; border:1px solid var(--border); border-radius:var(--radius); background:var(--white); color:var(--ink); margin-bottom:14px; }
+  input:focus,select:focus,textarea:focus{ outline:2px solid var(--safety); outline-offset:0; border-color:var(--safety); }
+  textarea{ min-height:70px; resize:vertical; }
+  table{ width:100%; border-collapse:collapse; font-size:13px; }
+  th{ text-align:left; font-family:var(--font-mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.03em; color:var(--steel); padding:8px 10px; border-bottom:1px solid var(--border); }
+  td{ padding:11px 10px; border-bottom:1px solid var(--concrete-dark); vertical-align:middle; }
+  tr:last-child td{ border-bottom:none; }
+  .tag{ display:inline-flex; align-items:center; gap:5px; font-family:var(--font-mono); font-size:11px; padding:3px 8px; border-radius:2px; font-weight:600; }
+  .tag.g{ background:var(--green-bg); color:var(--green); } .tag.y{ background:var(--yellow-bg); color:var(--yellow); }
+  .tag.r{ background:var(--red-bg); color:var(--red); } .tag.n{ background:var(--concrete-dark); color:var(--steel); }
+  .dot{ width:7px; height:7px; border-radius:50%; display:inline-block; }
+  .dot.g{ background:var(--green); } .dot.y{ background:var(--yellow); } .dot.r{ background:var(--red); }
+  .empty{ padding:34px 20px; text-align:center; color:var(--steel); font-size:13.5px; border:1px dashed var(--border); border-radius:var(--radius); }
+  .stat{ background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:16px 18px; }
+  .stat .num{ font-family:var(--font-head); font-size:30px; font-weight:800; line-height:1; }
+  .stat .lbl{ font-size:12px; color:var(--steel); margin-top:6px; }
+  .modal-backdrop{ position:fixed; inset:0; background:rgba(28,35,33,.5); display:none; align-items:flex-start; justify-content:center; padding:40px 16px; overflow-y:auto; z-index:50; }
+  .modal-backdrop.open{ display:flex; }
+  .modal{ background:var(--paper); border:1px solid var(--border); border-radius:var(--radius); max-width:560px; width:100%; padding:24px; }
+  .modal h2{ font-family:var(--font-head); font-size:19px; margin:0 0 14px; }
+  .modal-close{ float:right; background:none; border:none; font-size:20px; cursor:pointer; color:var(--steel); line-height:1; }
+  .scafftag{ width:150px; border:3px solid var(--ink); border-radius:4px; overflow:hidden; font-family:var(--font-mono); background:var(--white); }
+  .scafftag .head{ padding:7px 8px 5px; text-align:center; font-family:var(--font-head); font-weight:800; font-size:11px; letter-spacing:.04em; }
+  .scafftag.green .head{ background:var(--green); color:#fff; } .scafftag.yellow .head{ background:var(--yellow); color:#fff; } .scafftag.red .head{ background:var(--red); color:#fff; }
+  .scafftag .qr{ display:flex; justify-content:center; padding:10px; background:#fff; }
+  .scafftag .id{ text-align:center; font-size:11px; padding:6px 4px 9px; font-weight:600; }
+  .sig-pad{ border:1px solid var(--border); border-radius:var(--radius); background:#fff; touch-action:none; width:100%; height:130px; }
+  .kv{ display:flex; justify-content:space-between; font-size:13px; padding:6px 0; border-bottom:1px solid var(--concrete-dark); }
+  .kv:last-child{ border-bottom:none; } .kv .k{ color:var(--steel); }
+  hr.rule{ border:none; border-top:1px solid var(--border); margin:18px 0; }
+  .toast{ position:fixed; bottom:20px; right:20px; background:var(--ink); color:var(--paper); padding:12px 18px; border-radius:var(--radius); font-size:13px; font-weight:500; z-index:99; opacity:0; transform:translateY(8px); transition:opacity .2s, transform .2s; pointer-events:none; max-width:360px; }
+  .toast.show{ opacity:1; transform:translateY(0); }
+  .toast.err{ background:var(--red); }
+  .center-screen{ min-height:100vh; display:flex; align-items:center; justify-content:center; background:var(--concrete); padding:calc(24px + env(safe-area-inset-top, 0px)) 24px calc(24px + env(safe-area-inset-bottom, 0px)); }
+  .auth-box{ width:100%; max-width:360px; }
+  .auth-brand{ text-align:center; margin-bottom:28px; }
+  .auth-brand .mark{ font-family:var(--font-head); font-weight:800; font-size:24px; }
+  .auth-brand .mark span{ color:var(--safety-dark); }
+  .auth-brand .sub{ font-family:var(--font-mono); font-size:11px; color:var(--steel); margin-top:4px; }
+  .spinner{ width:22px; height:22px; border:3px solid var(--border); border-top-color:var(--safety); border-radius:50%; animation:spin .7s linear infinite; margin:30px auto; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  .badge-role{ font-family:var(--font-mono); font-size:10px; padding:2px 6px; border-radius:2px; background:var(--concrete-dark); color:var(--steel); text-transform:uppercase; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div class="modal-backdrop" id="modalBackdrop"><div class="modal" id="modalBody"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   API CLIENT
+============================================================ */
+const TOKEN_KEY = 'scaffoldops_token';
+let token = localStorage.getItem(TOKEN_KEY);
+let currentUser = null;
+
+async function api(path, { method = 'GET', body } = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers.Authorization = 'Bearer ' + token;
+  let res;
+  try {
+    res = await fetch('/api' + path, { method, headers, body: body ? JSON.stringify(body) : undefined });
+  } catch (e) {
+    // fetch() itself threw — no connection at all, as opposed to the server
+    // answering with an error. Callers that support offline queuing check
+    // this flag to decide whether to queue instead of failing.
+    const netErr = new Error('No connection to the server');
+    netErr.isNetworkError = true;
+    throw netErr;
+  }
+  const isJson = (res.headers.get('content-type') || '').includes('application/json');
+  const data = isJson ? await res.json().catch(() => null) : null;
+  if (res.status === 401) { doLogout(); throw new Error('Session expired — please log in again'); }
+  if (!res.ok) throw new Error(data?.error || `Request failed (${res.status})`);
+  return data;
+}
+
+function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function toast(msg, isErr){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show' + (isErr ? ' err' : '');
+  clearTimeout(window.__toastT);
+  window.__toastT = setTimeout(()=>t.classList.remove('show'), 2600);
+}
+function openModal(html){
+  document.getElementById('modalBody').innerHTML = `<button class="modal-close" onclick="closeModal()">&times;</button>${html}`;
+  document.getElementById('modalBackdrop').classList.add('open');
+}
+function closeModal(){ document.getElementById('modalBackdrop').classList.remove('open'); }
+document.getElementById('modalBackdrop').addEventListener('click', e=>{ if(e.target.id==='modalBackdrop') closeModal(); });
+
+const CERT_LABEL = { basic:'Basic', advanced:'Advanced', supervisor:'Supervisor' };
+const TAG_LABEL = { green:'Safe to use', yellow:'Under inspection', red:'Do not use' };
+
+/* ============================================================
+   OFFLINE QUEUE (IndexedDB)
+   Crews are often on site with no signal. If an inspection or handover
+   can't reach the server, it's saved here instead of lost, and flushed
+   automatically the next time the device is back online.
+============================================================ */
+const OFFLINE_DB = 'scaffoldops-offline';
+const OFFLINE_STORE = 'queue';
+
+function openOfflineDB(){
+  return new Promise((resolve, reject)=>{
+    const req = indexedDB.open(OFFLINE_DB, 1);
+    req.onupgradeneeded = () => {
+      req.result.createObjectStore(OFFLINE_STORE, { keyPath: 'id' });
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function queueAdd(item){
+  const db = await openOfflineDB();
+  return new Promise((resolve, reject)=>{
+    const tx = db.transaction(OFFLINE_STORE, 'readwrite');
+    tx.objectStore(OFFLINE_STORE).put(item);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+async function queueAll(){
+  const db = await openOfflineDB();
+  return new Promise((resolve, reject)=>{
+    const tx = db.transaction(OFFLINE_STORE, 'readonly');
+    const req = tx.objectStore(OFFLINE_STORE).getAll();
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function queueRemove(id){
+  const db = await openOfflineDB();
+  return new Promise((resolve, reject)=>{
+    const tx = db.transaction(OFFLINE_STORE, 'readwrite');
+    tx.objectStore(OFFLINE_STORE).delete(id);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+// Replays one queued item against the live API. Returns true on success
+// (caller removes it from the queue), false if it should stay queued.
+async function replayQueueItem(item){
+  try{
+    if(item.type === 'inspection'){
+      const inspection = await api('/inspections', { method:'POST', body: item.body });
+      if(item.photoData) await api('/documents', { method:'POST', body:{ owner_type:'inspection', owner_id:inspection.id, doc_type:'photo', file_url:item.photoData } }).catch(()=>{});
+      if(item.sigData) await api('/documents', { method:'POST', body:{ owner_type:'inspection', owner_id:inspection.id, doc_type:'signature', file_url:item.sigData } }).catch(()=>{});
+    } else if(item.type === 'handover'){
+      const handover = await api('/handovers', { method:'POST', body: item.body });
+      if(item.sigData) await api('/documents', { method:'POST', body:{ owner_type:'handover', owner_id:handover.id, doc_type:'signature', file_url:item.sigData } }).catch(()=>{});
+    }
+    return true;
+  }catch(e){
+    if(e.isNetworkError) return false; // still offline — leave it queued
+    // Server reachable but rejected it (e.g. stale data) — surface it and
+    // drop it from the queue rather than retrying something that will
+    // never succeed.
+    toast(`Sync failed for a queued ${item.type}: ${e.message}`, true);
+    return true;
+  }
+}
+
+async function flushQueue(){
+  const items = await queueAll();
+  if(!items.length) return;
+  let synced = 0;
+  for(const item of items){
+    const ok = await replayQueueItem(item);
+    if(ok){ await queueRemove(item.id); synced++; }
+  }
+  if(synced) toast(`Synced ${synced} item${synced>1?'s':''} saved while offline`);
+  updateSyncBadge();
+}
+
+async function updateSyncBadge(){
+  const badge = document.getElementById('syncBadge');
+  if(!badge) return;
+  const items = await queueAll().catch(()=>[]);
+  badge.textContent = items.length ? `${items.length} pending sync` : '';
+  badge.style.display = items.length ? 'inline-flex' : 'none';
+}
+
+window.addEventListener('online', flushQueue);
+setInterval(flushQueue, 30000); // in case the 'online' event doesn't fire reliably on this device
+
+/* ============================================================
+   BOOT / AUTH
+============================================================ */
+async function boot(){
+  if(!token){ renderLogin(); return; }
+  try{
+    currentUser = await api('/users/me');
+    renderApp();
+  }catch(e){
+    localStorage.removeItem(TOKEN_KEY); token = null;
+    renderLogin();
+  }
+}
+
+function renderLogin(){
+  document.getElementById('root').innerHTML = `
+    <div class="center-screen">
+      <div class="auth-box">
+        <div class="auth-brand">
+          <img src="/assets/logo.png" alt="ScaffoldOps" style="width:76px;height:76px;margin-bottom:6px;">
+          <div class="mark">SCAFFOLD<span>OPS</span></div>
+          <div class="sub">NZ · SITE OPERATIONS</div>
+        </div>
+        <div class="card">
+          <form id="loginForm">
+            <label>Email</label><input required type="email" name="email" autocomplete="username">
+            <label>Password</label><input required type="password" name="password" autocomplete="current-password">
+            <div id="loginError" style="color:var(--red); font-size:12.5px; margin:-6px 0 12px;"></div>
+            <button class="btn warn" type="submit" style="width:100%;">Log in</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('loginForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const f = new FormData(e.target);
+    const btn = e.target.querySelector('button');
+    btn.disabled = true; btn.textContent = 'Logging in…';
+    try{
+      const { token: t, user } = await api('/users/login', { method:'POST', body:{ email:f.get('email'), password:f.get('password') } });
+      token = t; localStorage.setItem(TOKEN_KEY, t);
+      currentUser = user;
+      renderApp();
+    }catch(err){
+      document.getElementById('loginError').textContent = err.message;
+      btn.disabled = false; btn.textContent = 'Log in';
+    }
+  });
+}
+
+function doLogout(){
+  localStorage.removeItem(TOKEN_KEY); token = null; currentUser = null;
+  renderLogin();
+}
+
+/* ============================================================
+   NAV / SHELL
+============================================================ */
+const ROUTES = [
+  { id:'companies',  label:'Companies',        n:'01', roles:['admin','manager'] },
+  { id:'sites',      label:'Sites',            n:'02', roles:['admin','manager','builder'] },
+  { id:'requests',   label:'Job requests',     n:'03', roles:['admin','manager','builder'] },
+  { id:'scheduling', label:'Scheduling',       n:'04', roles:['admin','manager'] },
+  { id:'crew',       label:'Crew & certs',     n:'05', roles:['admin','manager','supervisor','worker'] },
+  { id:'materials',  label:'Materials',        n:'06', roles:['admin','manager','supervisor','worker'] },
+  { id:'scaffolds',  label:'Scaffold IDs',     n:'07', roles:['admin','manager','supervisor','worker'] },
+  { id:'inspect',    label:'Inspection',       n:'08', roles:['admin','manager','supervisor','worker'] },
+  { id:'handover',   label:'Handover',         n:'09', roles:['admin','manager','supervisor','worker'] },
+  { id:'dashboard',  label:'Dashboard',        n:'10', roles:['admin','manager'] },
+];
+function visibleRoutes(){ return ROUTES.filter(r => r.roles.includes(currentUser.role)); }
+let route = null;
+function isStaff(){ return ['admin','manager'].includes(currentUser.role); }
+
+function renderApp(){
+  const routes = visibleRoutes();
+  if(!route || !routes.some(r=>r.id===route)) route = routes[0]?.id;
+  document.getElementById('root').innerHTML = `
+    <div class="mobile-topbar">
+      <button class="hamburger" id="hamburgerBtn" aria-label="Open menu">&#9776;</button>
+      <img src="/assets/logo.png" alt="">
+      <div class="title">SCAFFOLD<span>OPS</span></div>
+    </div>
+    <div class="side-backdrop" id="sideBackdrop"></div>
+    <div class="shell">
+      <aside class="side" id="sideNav">
+        <div class="brand">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <img src="/assets/logo.png" alt="ScaffoldOps" style="width:32px;height:32px;flex-shrink:0;">
+            <div class="mark">SCAFFOLD<span>OPS</span></div>
+          </div>
+          <div class="sub">NZ · SITE OPERATIONS</div>
+        </div>
+        <nav id="nav"></nav>
+        <div class="side-foot">
+          <div class="who">${esc(currentUser.full_name)}</div>
+          <div class="role">${esc(currentUser.role)}</div>
+          <span id="syncBadge" class="tag y" style="display:none; margin-top:8px;"></span>
+          <button id="logoutBtn">Log out</button>
+        </div>
+      </aside>
+      <main id="main"></main>
+    </div>
+  `;
+  document.getElementById('logoutBtn').addEventListener('click', doLogout);
+  updateSyncBadge();
+  flushQueue();
+  const sideNav = document.getElementById('sideNav');
+  const backdrop = document.getElementById('sideBackdrop');
+  function openDrawer(){ sideNav.classList.add('open'); backdrop.classList.add('open'); }
+  function closeDrawer(){ sideNav.classList.remove('open'); backdrop.classList.remove('open'); }
+  document.getElementById('hamburgerBtn').addEventListener('click', openDrawer);
+  backdrop.addEventListener('click', closeDrawer);
+  window.__closeDrawer = closeDrawer;
+  renderNav();
+  renderPage();
+}
+function renderNav(){
+  const nav = document.getElementById('nav');
+  nav.innerHTML = visibleRoutes().map(r=>`
+    <button class="nav-item ${r.id===route?'active':''}" data-route="${r.id}"><span class="n">${r.n}</span><span>${r.label}</span></button>
+  `).join('');
+  nav.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click', ()=>{
+    route = b.dataset.route; renderNav(); renderPage();
+    if(window.__closeDrawer) window.__closeDrawer(); // tapping a page closes the mobile drawer
+  }));
+}
+function loadingHTML(){ return `<div class="spinner"></div>`; }
+
+const PAGES = { companies:pageCompanies, sites:pageSites, requests:pageRequests, scheduling:pageScheduling,
+  crew:pageCrew, materials:pageMaterials, scaffolds:pageScaffolds, inspect:pageInspect,
+  handover:pageHandover, dashboard:pageDashboard };
+
+async function renderPage(){
+  const main = document.getElementById('main');
+  main.innerHTML = loadingHTML();
+  try{
+    await PAGES[route](main);
+  }catch(e){
+    main.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+  }
+}
+
+/* ============================================================
+   COMPANIES
+============================================================ */
+async function pageCompanies(main){
+  const companies = await api('/companies');
+  main.innerHTML = `
+    <div class="page-head">
+      <div><h1>Companies</h1><div class="desc">Your own contractor company/branches, and the client companies who request scaffolding.</div></div>
+      <button class="btn warn" id="newBtn">+ New company</button>
+    </div>
+    <div class="card" style="padding:0;">
+      ${ companies.length ? `<table><thead><tr><th>Name</th><th>Type</th><th>Address</th><th>Phone</th></tr></thead><tbody>
+        ${companies.map(c=>`<tr><td>${esc(c.name)}</td><td><span class="tag ${c.type==='contractor'?'g':'n'}">${c.type}</span></td><td>${esc(c.address||'—')}</td><td>${esc(c.phone||'—')}</td></tr>`).join('')}
+      </tbody></table>` : `<div class="empty">No companies yet — add your own contractor company first, then your client companies.</div>` }
+    </div>
+  `;
+  main.querySelector('#newBtn').addEventListener('click', ()=>{
+    openModal(`
+      <h2>New company</h2>
+      <form id="f">
+        <label>Name</label><input required name="name">
+        <label>Type</label><select name="type"><option value="contractor">Contractor (your own company)</option><option value="client">Client (builder)</option></select>
+        <label>Address</label><input name="address">
+        <label>Phone</label><input name="phone">
+        <button class="btn warn" type="submit">Create</button>
+      </form>
+    `);
+    document.getElementById('f').addEventListener('submit', async e=>{
+      e.preventDefault(); const f = new FormData(e.target);
+      try{
+        await api('/companies', { method:'POST', body:{ name:f.get('name'), type:f.get('type'), address:f.get('address')||undefined, phone:f.get('phone')||undefined } });
+        closeModal(); toast('Company created'); renderPage();
+      }catch(err){ toast(err.message, true); }
+    });
+  });
+}
+
+/* ============================================================
+   SITES
+============================================================ */
+async function pageSites(main){
+  const [sites, companies] = await Promise.all([ api('/sites'), api('/companies').catch(()=>[]) ]);
+  const companyName = id => companies.find(c=>c.id===id)?.name || '—';
+  main.innerHTML = `
+    <div class="page-head">
+      <div><h1>Sites</h1><div class="desc">Job sites belonging to your client companies.</div></div>
+      <button class="btn warn" id="newBtn">+ New site</button>
+    </div>
+    <div class="card" style="padding:0;">
+      ${ sites.length ? `<table><thead><tr><th>Site</th><th>Client</th><th>Address</th></tr></thead><tbody>
+        ${sites.map(s=>`<tr><td>${esc(s.name)}</td><td>${esc(companyName(s.company_id))}</td><td>${esc(s.address)}</td></tr>`).join('')}
+      </tbody></table>` : `<div class="empty">No sites yet.</div>` }
+    </div>
+  `;
+  main.querySelector('#newBtn').addEventListener('click', ()=>{
+    const clientCompanies = companies.filter(c=>c.type==='client');
+    if(!clientCompanies.length){ toast('Add a client company first (Companies page)', true); return; }
+    openModal(`
+      <h2>New site</h2>
+      <form id="f">
+        <label>Client company</label><select name="company_id">${clientCompanies.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select>
+        <label>Site name</label><input required name="name" placeholder="e.g. Hobsonville Point — Block C">
+        <label>Address</label><input required name="address">
+        <button class="btn warn" type="submit">Create</button>
+      </form>
+    `);
+    document.getElementById('f').addEventListener('submit', async e=>{
+      e.preventDefault(); const f = new FormData(e.target);
+      try{
+        await api('/sites', { method:'POST', body:{ company_id:f.get('company_id'), name:f.get('name'), address:f.get('address') } });
+        closeModal(); toast('Site created'); renderPage();
+      }catch(err){ toast(err.message, true); }
+    });
+  });
+}
+
+/* ============================================================
+   JOB REQUESTS
+============================================================ */
+async function pageRequests(main){
+  const [requests, sites] = await Promise.all([ api('/job-requests'), api('/sites').catch(()=>[]) ]);
+  main.innerHTML = `
+    <div class="page-head">
+      <div><h1>Job requests</h1><div class="desc">Requests waiting to be scheduled with a crew, date and confirmed location.</div></div>
+      <button class="btn warn" id="newBtn">+ New request</button>
+    </div>
+    <div class="card" style="padding:0;">
+      ${ requests.length ? `<table><thead><tr><th>Site</th><th>Needed by</th><th>Work type</th><th>Status</th></tr></thead><tbody>
+        ${requests.map(r=>`<tr><td>${esc(r.site_name)}<div style="color:var(--steel);font-size:11.5px;">${esc(r.site_address)}</div></td><td>${r.needed_by?.slice(0,10)||''}</td><td><span class="tag ${r.work_type==='advanced'?'y':'n'}">${r.work_type}</span></td><td><span class="tag ${r.status==='scheduled'?'g':'n'}">${r.status}</span></td></tr>`).join('')}
+      </tbody></table>` : `<div class="empty">No job requests yet.</div>` }
+    </div>
+    <div class="flow-note" style="color:var(--steel);font-size:12.5px;margin-top:12px;">Schedule a request (assign crew + date) from the Scheduling page.</div>
+  `;
+  main.querySelector('#newBtn').addEventListener('click', ()=>{
+    if(!sites.length){ toast('Add a site first (Sites page)', true); return; }
+    openModal(`
+      <h2>New job request</h2>
+      <form id="f">
+        <label>Site</label><select name="site_id">${sites.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('')}</select>
+        <label>Work type</label><select name="work_type"><option value="basic">Basic access</option><option value="advanced">Advanced / complex</option></select>
+        <label>Needed by</label><input required type="date" name="needed_by">
+        <label>Notes</label><textarea name="notes"></textarea>
+        <button class="btn warn" type="submit">Submit request</button>
+      </form>
+    `);
+    document.getElementById('f').addEventListener('submit', async e=>{
+      e.preventDefault(); const f = new FormData(e.target);
+      try{
+        await api('/job-requests', { method:'POST', body:{ site_id:f.get('site_id'), work_type:f.get('work_type'), needed_by:f.get('needed_by'), notes:f.get('notes')||undefined } });
+        closeModal(); toast('Request submitted'); renderPage();
+      }catch(err){ toast(err.message, true); }
+    });
+  });
+}
+
+/* ============================================================
+   SCHEDULING
+============================================================ */
+async function pageScheduling(main){
+  const [requests, jobs, crews] = await Promise.all([ api('/job-requests'), api('/jobs'), api('/crews').catch(()=>[]) ]);
+  const openReqs = requests.filter(r=>r.status==='requested');
+  main.innerHTML = `
+    <div class="page-head"><div><h1>Scheduling</h1><div class="desc">Assign a crew and date to open requests. Competency is checked automatically by the API.</div></div></div>
+    <div class="card" style="padding:0; margin-bottom:24px;">
+      ${ jobs.length ? `<table><thead><tr><th>Site</th><th>Crew</th><th>Date</th><th>Work type</th><th>Status</th></tr></thead><tbody>
+        ${jobs.map(j=>`<tr><td>${esc(j.site_name)}</td><td>${esc(j.crew_name)}</td><td>${j.scheduled_date?.slice(0,10)}</td><td><span class="tag n">${j.work_type}</span></td><td><span class="tag g">${j.status}</span></td></tr>`).join('')}
+      </tbody></table>` : `<div class="empty">No jobs scheduled yet.</div>` }
+    </div>
+    <h2 style="font-family:var(--font-head);font-size:15px;margin:0 0 10px;">Waiting to be scheduled</h2>
+    <div class="grid cols-2">
+      ${ openReqs.length ? openReqs.map(r=>`
+        <div class="card">
+          <div style="font-weight:700;">${esc(r.site_name)}</div>
+          <div style="color:var(--steel);font-size:12.5px;margin:4px 0 10px;">needed ${r.needed_by?.slice(0,10)} · <span class="tag ${r.work_type==='advanced'?'y':'n'}">${r.work_type}</span></div>
+          <button class="btn small warn" data-schedule="${r.id}" data-worktype="${r.work_type}">Schedule</button>
+        </div>
+      `).join('') : `<div class="empty" style="grid-column:1/-1;">Nothing waiting — all caught up.</div>` }
+    </div>
+  `;
+  main.querySelectorAll('[data-schedule]').forEach(b=>b.addEventListener('click', ()=>{
+    if(!crews.length){ toast('Add a crew first (Crew & certs page)', true); return; }
+    openModal(`
+      <h2>Schedule job</h2>
+      <form id="f">
+        <label>Crew</label><select name="crew_id">${crews.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select>
+        <label>Date on site</label><input required type="date" name="scheduled_date">
+        <div id="warnBox"></div>
+        <button class="btn warn" type="submit">Confirm & schedule</button>
+      </form>
+    `);
+    document.getElementById('f').addEventListener('submit', async e=>{
+      e.preventDefault(); const f = new FormData(e.target);
+      try{
+        await api(`/job-requests/${b.dataset.schedule}/schedule`, { method:'POST', body:{ crew_id:f.get('crew_id'), scheduled_date:f.get('scheduled_date') } });
+        closeModal(); toast('Job scheduled'); renderPage();
+      }catch(err){
+        document.getElementById('warnBox').innerHTML = `<div class="tag r" style="margin-bottom:12px;">${esc(err.message)}</div>`;
+      }
+    });
+  }));
+}
+
+/* ============================================================
+   CREW & CERTS
+============================================================ */
+async function pageCrew(main){
+  const [workers, crews, companies] = await Promise.all([ api('/workers'), api('/crews'), api('/companies').catch(()=>[]) ]);
+  const contractors = companies.filter(c=>c.type==='contractor');
+  main.innerHTML = `
+    <div class="page-head">
+      <div><h1>Crew & certs</h1><div class="desc">Workers, their certification level, and which crew they belong to.</div></div>
+      ${ isStaff() ? `<div style="display:flex;gap:8px;"><button class="btn secondary small" id="newWorkerBtn">+ Worker</button><button class="btn secondary small" id="newCrewBtn">+ Crew</button></div>` : '' }
+    </div>
+    <div class="grid cols-2">
+      <div class="card">
+        <div style="font-weight:700;margin-bottom:10px;">Workers</div>
+        <table><thead><tr><th>Name</th><th>Current cert</th>${isStaff()?'<th></th>':''}</tr></thead><tbody>
+          ${workers.map(w=>`<tr><td>${esc(w.full_name)}</td><td>${w.current_cert?`<span class="tag ${w.current_cert==='supervisor'?'g':w.current_cert==='advanced'?'y':'n'}">${CERT_LABEL[w.current_cert]}</span>`:'<span class="tag r">none</span>'}</td>${isStaff()?`<td><button class="btn small secondary" data-cert="${w.id}">+ Cert</button></td>`:''}</tr>`).join('') || `<tr><td colspan="3" style="color:var(--steel);">No workers yet.</td></tr>`}
+        </tbody></table>
+      </div>
+      <div class="card">
+        <div style="font-weight:700;margin-bottom:10px;">Crews</div>
+        ${ crews.length ? crews.map(c=>`
+          <div style="margin-bottom:12px;">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;">
+              <strong>${esc(c.name)}</strong>
+              ${isStaff()?`<button class="btn small secondary" data-addmember="${c.id}">+ Add worker</button>`:''}
+            </div>
+            <div style="color:var(--steel);font-size:12.5px;">${(c.members||[]).map(esc).join(', ') || 'No members yet'}</div>
+          </div>
+        `).join('') : `<div class="empty">No crews yet.</div>` }
+      </div>
+    </div>
+  `;
+  if(isStaff()){
+    main.querySelector('#newWorkerBtn').addEventListener('click', ()=>{
+      if(!contractors.length){ toast('Add your contractor company first (Companies page)', true); return; }
+      openModal(`
+        <h2>New worker</h2>
+        <form id="f">
+          <label>Contractor company</label><select name="contractor_id">${contractors.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select>
+          <label>Full name</label><input required name="full_name">
+          <label>Phone</label><input name="phone">
+          <button class="btn warn" type="submit">Add worker</button>
+        </form>
+      `);
+      document.getElementById('f').addEventListener('submit', async e=>{
+        e.preventDefault(); const f = new FormData(e.target);
+        try{ await api('/workers', { method:'POST', body:{ contractor_id:f.get('contractor_id'), full_name:f.get('full_name'), phone:f.get('phone')||undefined } }); closeModal(); toast('Worker added'); renderPage(); }
+        catch(err){ toast(err.message, true); }
+      });
+    });
+    main.querySelector('#newCrewBtn').addEventListener('click', ()=>{
+      if(!contractors.length){ toast('Add your contractor company first (Companies page)', true); return; }
+      openModal(`
+        <h2>New crew</h2>
+        <form id="f">
+          <label>Contractor company</label><select name="contractor_id">${contractors.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select>
+          <label>Crew name</label><input required name="name" placeholder="e.g. Crew Ahi">
+          <button class="btn warn" type="submit">Create crew</button>
+        </form>
+      `);
+      document.getElementById('f').addEventListener('submit', async e=>{
+        e.preventDefault(); const f = new FormData(e.target);
+        try{ await api('/crews', { method:'POST', body:{ contractor_id:f.get('contractor_id'), name:f.get('name') } }); closeModal(); toast('Crew created'); renderPage(); }
+        catch(err){ toast(err.message, true); }
+      });
+    });
+    main.querySelectorAll('[data-cert]').forEach(b=>b.addEventListener('click', ()=>{
+      openModal(`
+        <h2>Add certification</h2>
+        <form id="f">
+          <label>Level</label><select name="level"><option value="basic">Basic</option><option value="advanced">Advanced</option><option value="supervisor">Supervisor</option></select>
+          <label>Issuing body</label><input name="issuing_body" placeholder="e.g. Site Safe NZ">
+          <label>Certificate number</label><input name="cert_number">
+          <label>Issued date</label><input required type="date" name="issued_date">
+          <label>Expiry date (optional)</label><input type="date" name="expiry_date">
+          <button class="btn warn" type="submit">Add certification</button>
+        </form>
+      `);
+      document.getElementById('f').addEventListener('submit', async e=>{
+        e.preventDefault(); const f = new FormData(e.target);
+        try{
+          await api('/certifications', { method:'POST', body:{ worker_id:b.dataset.cert, level:f.get('level'), issuing_body:f.get('issuing_body')||undefined, cert_number:f.get('cert_number')||undefined, issued_date:f.get('issued_date'), expiry_date:f.get('expiry_date')||undefined } });
+          closeModal(); toast('Certification added'); renderPage();
+        }catch(err){ toast(err.message, true); }
+      });
+    }));
+    main.querySelectorAll('[data-addmember]').forEach(b=>b.addEventListener('click', ()=>{
+      if(!workers.length){ toast('Add a worker first', true); return; }
+      openModal(`
+        <h2>Add worker to crew</h2>
+        <form id="f">
+          <label>Worker</label><select name="worker_id">${workers.map(w=>`<option value="${w.id}">${esc(w.full_name)}</option>`).join('')}</select>
+          <button class="btn warn" type="submit">Add to crew</button>
+        </form>
+      `);
+      document.getElementById('f').addEventListener('submit', async e=>{
+        e.preventDefault(); const f = new FormData(e.target);
+        try{ await api(`/crews/${b.dataset.addmember}/members`, { method:'POST', body:{ worker_id:f.get('worker_id') } }); closeModal(); toast('Added to crew'); renderPage(); }
+        catch(err){ toast(err.message, true); }
+      });
+    }));
+  }
+}
+
+/* ============================================================
+   MATERIALS
+============================================================ */
+async function pageMaterials(main){
+  const [materials, companies] = await Promise.all([ api('/materials'), api('/companies').catch(()=>[]) ]);
+  const contractors = companies.filter(c=>c.type==='contractor');
+  main.innerHTML = `
+    <div class="page-head">
+      <div><h1>Materials</h1><div class="desc">Equipment on hand across your yard.</div></div>
+      ${isStaff() ? `<button class="btn warn" id="newBtn">+ New material</button>` : ''}
+    </div>
+    <div class="card" style="padding:0;">
+      ${ materials.length ? `<table><thead><tr><th>Item</th><th>In stock</th><th>Reorder at</th>${isStaff()?'<th></th>':''}</tr></thead><tbody>
+        ${materials.map(m=>`<tr><td>${esc(m.name)}</td><td>${m.qty_on_hand} ${esc(m.unit)}</td><td>${m.reorder_threshold} ${esc(m.unit)}</td>${isStaff()?`<td><button class="btn small secondary" data-adjust="${m.id}">Adjust stock</button></td>`:''}</tr>`).join('')}
+      </tbody></table>` : `<div class="empty">No materials logged yet.</div>` }
+    </div>
+  `;
+  if(isStaff()){
+    main.querySelector('#newBtn').addEventListener('click', ()=>{
+      if(!contractors.length){ toast('Add your contractor company first (Companies page)', true); return; }
+      openModal(`
+        <h2>New material</h2>
+        <form id="f">
+          <label>Contractor company</label><select name="contractor_id">${contractors.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select>
+          <label>Name</label><input required name="name" placeholder="e.g. Standards (2.0m)">
+          <label>Unit</label><input name="unit" value="ea">
+          <label>Starting quantity</label><input type="number" name="qty_on_hand" value="0">
+          <label>Reorder threshold</label><input type="number" name="reorder_threshold" value="0">
+          <button class="btn warn" type="submit">Create</button>
+        </form>
+      `);
+      document.getElementById('f').addEventListener('submit', async e=>{
+        e.preventDefault(); const f = new FormData(e.target);
+        try{
+          await api('/materials', { method:'POST', body:{ contractor_id:f.get('contractor_id'), name:f.get('name'), unit:f.get('unit')||'ea', qty_on_hand:Number(f.get('qty_on_hand')||0), reorder_threshold:Number(f.get('reorder_threshold')||0) } });
+          closeModal(); toast('Material added'); renderPage();
+        }catch(err){ toast(err.message, true); }
+      });
+    });
+    main.querySelectorAll('[data-adjust]').forEach(b=>b.addEventListener('click', ()=>{
+      openModal(`
+        <h2>Adjust stock</h2>
+        <form id="f">
+          <label>Change (use a negative number to remove stock)</label><input required type="number" name="delta" placeholder="e.g. 50 or -10">
+          <button class="btn warn" type="submit">Apply</button>
+        </form>
+      `);
+      document.getElementById('f').addEventListener('submit', async e=>{
+        e.preventDefault(); const f = new FormData(e.target);
+        try{ await api(`/materials/${b.dataset.adjust}/stock`, { method:'PATCH', body:{ delta:Number(f.get('delta')) } }); closeModal(); toast('Stock updated'); renderPage(); }
+        catch(err){ toast(err.message, true); }
+      });
+    }));
+  }
+}
+
+/* ============================================================
+   SCAFFOLD IDs
+============================================================ */
+async function pageScaffolds(main){
+  const [scaffolds, jobs] = await Promise.all([ api('/scaffolds'), api('/jobs').catch(()=>[]) ]);
+  main.innerHTML = `
+    <div class="page-head">
+      <div><h1>Scaffold IDs</h1><div class="desc">Every erected scaffold's QR tag. Scanning it on-site (mobile app) opens straight to its inspection record.</div></div>
+      <button class="btn warn" id="newBtn">+ Issue new tag</button>
+    </div>
+    <div class="grid cols-3" id="tagGrid"></div>
+  `;
+  const grid = main.querySelector('#tagGrid');
+  if(!scaffolds.length) grid.innerHTML = `<div class="empty" style="grid-column:1/-1;">No scaffolds tagged yet.</div>`;
+  scaffolds.forEach(sc=>{
+    const wrap = document.createElement('div'); wrap.className = 'card';
+    wrap.innerHTML = `
+      <div class="scafftag ${sc.status}" style="margin:0 auto 10px;">
+        <div class="head">${TAG_LABEL[sc.status] || sc.status}</div>
+        <div class="qr"><div class="qrcode" data-code="${esc(sc.qr_code)}"></div></div>
+        <div class="id">${esc(sc.qr_code)}</div>
+      </div>
+      <div style="font-size:12.5px;color:var(--steel);text-align:center;">${esc(sc.site_name || 'Unassigned')}</div>
+    `;
+    grid.appendChild(wrap);
+  });
+  setTimeout(()=>{
+    grid.querySelectorAll('.qrcode').forEach(el=>{
+      if(window.QRCode) new QRCode(el, { text: el.dataset.code, width:96, height:96, correctLevel: QRCode.CorrectLevel.M });
+      else el.textContent = el.dataset.code;
+    });
+  }, 0);
+  main.querySelector('#newBtn').addEventListener('click', ()=>{
+    if(!jobs.length){ toast('Schedule a job first', true); return; }
+    openModal(`
+      <h2>Issue new scaffold tag</h2>
+      <form id="f">
+        <label>Job</label><select name="job_id">${jobs.map(j=>`<option value="${j.id}">${esc(j.site_name)} — ${j.scheduled_date?.slice(0,10)}</option>`).join('')}</select>
+        <label>Scaffold type</label><input required name="type" placeholder="e.g. Independent — double lift">
+        <button class="btn warn" type="submit">Generate QR tag</button>
+      </form>
+    `);
+    document.getElementById('f').addEventListener('submit', async e=>{
+      e.preventDefault(); const f = new FormData(e.target);
+      try{ await api('/scaffolds', { method:'POST', body:{ job_id:f.get('job_id'), type:f.get('type') } }); closeModal(); toast('Tag issued'); renderPage(); }
+      catch(err){ toast(err.message, true); }
+    });
+  });
+}
+
+/* ============================================================
+   INSPECTION
+============================================================ */
+let sigCtx=null, sigDrawing=false, sigData=null, photoData=null;
+
+async function pageInspect(main){
+  const [scaffolds, workers] = await Promise.all([ api('/scaffolds'), api('/workers').catch(()=>[]) ]);
+  main.innerHTML = `
+    <div class="page-head"><div><h1>Inspection</h1><div class="desc">Scan a scaffold's QR tag, log the inspection, and its tag colour updates immediately — even offline, it'll sync once you're back in signal.</div></div></div>
+    <div class="grid cols-2" style="align-items:start;">
+      <div class="card">
+        <button class="btn warn" id="scanBtn" style="width:100%;margin-bottom:14px;">📷 Scan QR tag</button>
+        <label>Or choose manually</label>
+        <select id="scafSelect"><option value="">— choose a tag —</option>${scaffolds.map(s=>`<option value="${s.id}">${esc(s.qr_code)} — ${esc(s.site_name||'unassigned')}</option>`).join('')}</select>
+        <div id="detail"></div>
+      </div>
+      <div class="card"><div id="history">Scan or select a scaffold to see its inspection history.</div></div>
+    </div>
+  `;
+  main.querySelector('#scafSelect').addEventListener('change', async (e)=>{
+    if(!e.target.value){ main.querySelector('#detail').innerHTML=''; main.querySelector('#history').innerHTML='Scan or select a scaffold to see its inspection history.'; return; }
+    await loadInspectById(e.target.value, workers, main);
+  });
+  main.querySelector('#scanBtn').addEventListener('click', ()=>{
+    openScanModal(async (code)=>{
+      closeModal();
+      await loadInspectByCode(code, workers, main);
+    });
+  });
+}
+
+async function loadInspectById(scaffoldId, workers, main){
+  const detail = main.querySelector('#detail');
+  detail.innerHTML = loadingHTML();
+  try{
+    const full = await api(`/scaffolds/${scaffoldId}`);
+    main.querySelector('#scafSelect').value = scaffoldId;
+    renderInspectForm(full, workers, main);
+  }catch(err){ detail.innerHTML = `<div class="empty">${esc(err.message)}</div>`; }
+}
+async function loadInspectByCode(code, workers, main){
+  const detail = main.querySelector('#detail');
+  detail.innerHTML = loadingHTML();
+  try{
+    const full = await api(`/scaffolds/by-code/${encodeURIComponent(code)}`);
+    const sel = main.querySelector('#scafSelect');
+    if(![...sel.options].some(o=>o.value===full.id)){
+      sel.insertAdjacentHTML('beforeend', `<option value="${full.id}">${esc(full.qr_code)} — ${esc(full.site_name||'unassigned')}</option>`);
+    }
+    sel.value = full.id;
+    renderInspectForm(full, workers, main);
+  }catch(err){ detail.innerHTML = `<div class="empty">${esc(err.message)}</div>`; toast(err.message, true); }
+}
+
+function renderInspectForm(full, workers, main){
+  const detail = main.querySelector('#detail');
+  const historyBox = main.querySelector('#history');
+  photoData = null; sigData = null;
+  detail.innerHTML = `
+    <hr class="rule">
+    <div class="kv"><span class="k">Tag</span><span>${esc(full.qr_code)}</span></div>
+    <div class="kv"><span class="k">Type</span><span>${esc(full.type)}</span></div>
+    <div class="kv"><span class="k">Current tag colour</span><span class="tag ${full.status}">${TAG_LABEL[full.status]}</span></div>
+    <hr class="rule">
+    <form id="inspForm">
+      <label>Inspector</label>
+      <select required name="inspector_worker_id">${workers.map(w=>`<option value="${w.id}">${esc(w.full_name)}</option>`).join('')}</select>
+      <label>Findings</label><textarea name="notes" placeholder="Ties, bracing, guardrails, base plates, ground conditions..."></textarea>
+      <label>Result</label>
+      <select name="result">
+        <option value="green">Pass — safe to use (green tag)</option>
+        <option value="yellow">Minor issues — restricted use (yellow tag)</option>
+        <option value="red">Fail — do not use (red tag)</option>
+      </select>
+      <label>Photo (optional)</label><input type="file" accept="image/*" capture="environment" id="photoInput">
+      <label style="margin-top:10px;">Inspector signature</label>
+      <canvas class="sig-pad" id="sigPad"></canvas>
+      <div style="margin:6px 0 14px;"><button type="button" class="btn small secondary" id="clearSig">Clear</button></div>
+      <button class="btn warn" type="submit">Save inspection & set tag</button>
+    </form>
+  `;
+  setupSigPad();
+  document.getElementById('photoInput').addEventListener('change', e=>{
+    const f = e.target.files[0]; if(!f) return;
+    const r = new FileReader(); r.onload = ()=>{ photoData = r.result; }; r.readAsDataURL(f);
+  });
+  document.getElementById('inspForm').addEventListener('submit', async e=>{
+    e.preventDefault(); const f = new FormData(e.target);
+    const body = { scaffold_id: full.id, inspector_worker_id: f.get('inspector_worker_id'), result: f.get('result'), notes: f.get('notes')||undefined };
+    const submitBtn = e.target.querySelector('button[type=submit]');
+    submitBtn.disabled = true;
+    try{
+      const inspection = await api('/inspections', { method:'POST', body });
+      // NOTE: photo/signature are POSTed as raw base64 data URLs for now —
+      // swap for a real cloud upload (S3 signed URL) before relying on this
+      // for many photos, it'll bloat the database fast.
+      if(photoData) await api('/documents', { method:'POST', body:{ owner_type:'inspection', owner_id:inspection.id, doc_type:'photo', file_url:photoData } }).catch(()=>{});
+      if(sigData) await api('/documents', { method:'POST', body:{ owner_type:'inspection', owner_id:inspection.id, doc_type:'signature', file_url:sigData } }).catch(()=>{});
+      toast('Inspection saved — tag updated');
+      renderPage();
+    }catch(err){
+      if(err.isNetworkError){
+        await queueAdd({ id: crypto.randomUUID(), type:'inspection', body, photoData, sigData, createdAt: Date.now() });
+        updateSyncBadge();
+        toast('No connection — saved on this device, will sync automatically');
+        renderPage();
+      } else {
+        toast(err.message, true);
+        submitBtn.disabled = false;
+      }
+    }
+  });
+  api(`/inspections/scaffold/${full.id}`).then(inspections=>{
+    historyBox.innerHTML = `<div style="font-weight:700;margin-bottom:10px;">Inspection history</div>` + (
+      inspections.length ? inspections.map(i=>`<div class="kv"><span class="k">${i.inspected_at?.slice(0,10)}</span><span class="tag ${i.result}">${TAG_LABEL[i.result]}</span></div>`).join('')
+      : `<div class="empty">No inspections logged yet for this scaffold.</div>`
+    );
+  }).catch(()=>{ historyBox.innerHTML = `<div class="empty">Inspection history unavailable offline.</div>`; });
+}
+
+function setupSigPad(){
+  const canvas = document.getElementById('sigPad'); if(!canvas) return;
+  const ratio = window.devicePixelRatio || 1;
+  canvas.width = canvas.clientWidth * ratio; canvas.height = canvas.clientHeight * ratio;
+  sigCtx = canvas.getContext('2d'); sigCtx.scale(ratio, ratio);
+  sigCtx.strokeStyle = '#1C2321'; sigCtx.lineWidth = 2; sigCtx.lineCap = 'round';
+  let last = null;
+  const pos = e => { const r = canvas.getBoundingClientRect(); const p = e.touches?e.touches[0]:e; return {x:p.clientX-r.left,y:p.clientY-r.top}; };
+  const start = e => { sigDrawing = true; last = pos(e); };
+  const move = e => { if(!sigDrawing) return; e.preventDefault(); const p = pos(e); sigCtx.beginPath(); sigCtx.moveTo(last.x,last.y); sigCtx.lineTo(p.x,p.y); sigCtx.stroke(); last=p; sigData = canvas.toDataURL(); };
+  const end = () => { sigDrawing = false; };
+  canvas.addEventListener('mousedown',start); canvas.addEventListener('mousemove',move); window.addEventListener('mouseup',end);
+  canvas.addEventListener('touchstart',start); canvas.addEventListener('touchmove',move); canvas.addEventListener('touchend',end);
+  document.getElementById('clearSig').addEventListener('click', ()=>{ sigCtx.clearRect(0,0,canvas.width,canvas.height); sigData = null; });
+}
+
+/* ============================================================
+   CAMERA QR SCANNER
+============================================================ */
+async function openScanModal(onCode){
+  openModal(`
+    <h2>Scan scaffold tag</h2>
+    <div style="position:relative; background:#000; border-radius:3px; overflow:hidden;">
+      <video id="scanVideo" playsinline autoplay muted style="width:100%; display:block; max-height:60vh;"></video>
+      <div style="position:absolute; inset:0; border:2px solid var(--safety); margin:15%; border-radius:6px; pointer-events:none;"></div>
+    </div>
+    <div id="scanStatus" style="font-size:12.5px; color:var(--steel); margin-top:10px;">Point the camera at the tag's QR code.</div>
+    <button class="btn secondary small" id="cancelScan" style="margin-top:12px;">Cancel</button>
+  `);
+  const video = document.getElementById('scanVideo');
+  const statusEl = document.getElementById('scanStatus');
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  let stream = null, stopped = false, raf = null;
+
+  function stop(){
+    stopped = true;
+    if(raf) cancelAnimationFrame(raf);
+    if(stream) stream.getTracks().forEach(t=>t.stop());
+  }
+  document.getElementById('cancelScan').addEventListener('click', ()=>{ stop(); closeModal(); });
+  document.getElementById('modalBackdrop').addEventListener('click', stop, { once:true });
+
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    statusEl.innerHTML = `<span style="color:var(--red);">Camera not available in this browser — use the dropdown instead.</span>`;
+    return;
+  }
+  if(!window.jsQR){
+    statusEl.innerHTML = `<span style="color:var(--red);">QR scanner failed to load — check your connection and use the dropdown instead.</span>`;
+    return;
+  }
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+  }catch(e){
+    statusEl.innerHTML = `<span style="color:var(--red);">Camera permission denied — use the dropdown instead.</span>`;
+    return;
+  }
+  video.srcObject = stream;
+
+  function tick(){
+    if(stopped) return;
+    if(video.readyState === video.HAVE_ENOUGH_DATA){
+      canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const result = jsQR(imageData.data, imageData.width, imageData.height);
+      if(result && result.data){
+        stop();
+        onCode(result.data.trim());
+        return;
+      }
+    }
+    raf = requestAnimationFrame(tick);
+  }
+  raf = requestAnimationFrame(tick);
+}
+
+/* ============================================================
+   HANDOVER
+============================================================ */
+let hoSigCtx=null, hoSigDrawing=false, hoSigData=null;
+
+async function pageHandover(main){
+  const [scaffolds, handovers, workers] = await Promise.all([ api('/scaffolds'), api('/handovers'), api('/workers').catch(()=>[]) ]);
+  const handedOverIds = new Set(handovers.map(h=>h.scaffold_id));
+  const ready = scaffolds.filter(s=>s.status==='green' && !handedOverIds.has(s.id));
+  main.innerHTML = `
+    <div class="page-head"><div><h1>Handover</h1><div class="desc">Issue a digital handover once a scaffold is green-tagged.</div></div></div>
+    <div class="grid cols-2" style="align-items:start;">
+      <div>
+        <h2 style="font-family:var(--font-head);font-size:15px;margin:0 0 10px;">Ready to hand over</h2>
+        ${ ready.length ? ready.map(sc=>`
+          <div class="card" style="margin-bottom:12px;">
+            <div style="display:flex;justify-content:space-between;"><strong>${esc(sc.qr_code)}</strong><span class="tag g">safe to use</span></div>
+            <div style="color:var(--steel);font-size:12.5px;margin:4px 0 10px;">${esc(sc.site_name||'')} · ${esc(sc.type)}</div>
+            <button class="btn small warn" data-handover="${sc.id}" data-job="${sc.job_id}">Issue handover</button>
+          </div>
+        `).join('') : `<div class="empty">No scaffolds ready — pass an inspection with a green tag first.</div>` }
+      </div>
+      <div>
+        <h2 style="font-family:var(--font-head);font-size:15px;margin:0 0 10px;">Issued handovers</h2>
+        ${ handovers.length ? handovers.map(h=>`
+          <div class="card" style="margin-bottom:10px;">
+            <div class="kv"><span class="k">Issued to</span><span>${esc(h.issued_to_name)}</span></div>
+            <div class="kv"><span class="k">Date</span><span>${h.handed_over_at?.slice(0,10)}</span></div>
+          </div>
+        `).join('') : `<div class="empty">No handovers issued yet.</div>` }
+      </div>
+    </div>
+  `;
+  main.querySelectorAll('[data-handover]').forEach(b=>b.addEventListener('click', ()=>{
+    if(!workers.length){ toast('Add a worker first', true); return; }
+    hoSigData = null;
+    openModal(`
+      <h2>Handover</h2>
+      <form id="f">
+        <label>Handed over by</label><select name="handed_over_by">${workers.map(w=>`<option value="${w.id}">${esc(w.full_name)}</option>`).join('')}</select>
+        <label>Received by (builder rep)</label><input required name="issued_to_name">
+        <label>Recipient signature</label>
+        <canvas class="sig-pad" id="hoSigPad"></canvas>
+        <div style="margin:6px 0 14px;"><button type="button" class="btn small secondary" id="hoClearSig">Clear</button></div>
+        <button class="btn warn" type="submit">Confirm handover</button>
+      </form>
+    `);
+    setupHoSigPad();
+    document.getElementById('f').addEventListener('submit', async e=>{
+      e.preventDefault(); const f = new FormData(e.target);
+      const body = { scaffold_id:b.dataset.handover, job_id:b.dataset.job, handed_over_by:f.get('handed_over_by'), issued_to_name:f.get('issued_to_name') };
+      try{
+        const handover = await api('/handovers', { method:'POST', body });
+        if(hoSigData) await api('/documents', { method:'POST', body:{ owner_type:'handover', owner_id:handover.id, doc_type:'signature', file_url:hoSigData } }).catch(()=>{});
+        closeModal(); toast('Handover issued'); renderPage();
+      }catch(err){
+        if(err.isNetworkError){
+          await queueAdd({ id: crypto.randomUUID(), type:'handover', body, sigData: hoSigData, createdAt: Date.now() });
+          updateSyncBadge();
+          closeModal(); toast('No connection — saved on this device, will sync automatically'); renderPage();
+        } else {
+          toast(err.message, true);
+        }
+      }
+    });
+  }));
+}
+function setupHoSigPad(){
+  const canvas = document.getElementById('hoSigPad'); if(!canvas) return;
+  const ratio = window.devicePixelRatio || 1;
+  canvas.width = canvas.clientWidth * ratio; canvas.height = canvas.clientHeight * ratio;
+  hoSigCtx = canvas.getContext('2d'); hoSigCtx.scale(ratio, ratio);
+  hoSigCtx.strokeStyle = '#1C2321'; hoSigCtx.lineWidth = 2; hoSigCtx.lineCap = 'round';
+  let last = null;
+  const pos = e => { const r = canvas.getBoundingClientRect(); const p = e.touches?e.touches[0]:e; return {x:p.clientX-r.left,y:p.clientY-r.top}; };
+  const start = e => { hoSigDrawing = true; last = pos(e); };
+  const move = e => { if(!hoSigDrawing) return; e.preventDefault(); const p = pos(e); hoSigCtx.beginPath(); hoSigCtx.moveTo(last.x,last.y); hoSigCtx.lineTo(p.x,p.y); hoSigCtx.stroke(); last=p; hoSigData = canvas.toDataURL(); };
+  const end = () => { hoSigDrawing = false; };
+  canvas.addEventListener('mousedown',start); canvas.addEventListener('mousemove',move); window.addEventListener('mouseup',end);
+  canvas.addEventListener('touchstart',start); canvas.addEventListener('touchmove',move); canvas.addEventListener('touchend',end);
+  document.getElementById('hoClearSig').addEventListener('click', ()=>{ hoSigCtx.clearRect(0,0,canvas.width,canvas.height); hoSigData = null; });
+}
+
+/* ============================================================
+   DASHBOARD
+============================================================ */
+async function pageDashboard(main){
+  const [summary, scaffolds, jobs] = await Promise.all([ api('/dashboard/summary'), api('/scaffolds'), api('/jobs') ]);
+  main.innerHTML = `
+    <div class="page-head"><div><h1>Dashboard</h1><div class="desc">Everything happening across every site.</div></div></div>
+    <div class="grid cols-4" style="margin-bottom:24px;">
+      <div class="stat"><div class="num">${summary.open_requests}</div><div class="lbl">Requests awaiting scheduling</div></div>
+      <div class="stat"><div class="num">${summary.active_jobs}</div><div class="lbl">Active jobs</div></div>
+      <div class="stat"><div class="num">${scaffolds.length}</div><div class="lbl">Scaffolds tagged</div></div>
+      <div class="stat"><div class="num" style="color:${summary.jobs_with_shortfalls?'var(--red)':'var(--ink)'};">${summary.jobs_with_shortfalls}</div><div class="lbl">Jobs with material shortfalls</div></div>
+    </div>
+    <div class="grid cols-2">
+      <div class="card">
+        <div style="font-weight:700;margin-bottom:12px;">Scaffold status across sites</div>
+        <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;">
+          <span class="tag g"><span class="dot g"></span> ${summary.scaffolds_by_status.green||0} safe</span>
+          <span class="tag y"><span class="dot y"></span> ${summary.scaffolds_by_status.yellow||0} flagged</span>
+          <span class="tag r"><span class="dot r"></span> ${summary.scaffolds_by_status.red||0} unsafe</span>
+        </div>
+        ${scaffolds.map(sc=>`<div class="kv"><span class="k">${esc(sc.qr_code)} · ${esc(sc.site_name||'unassigned')}</span><span class="tag ${sc.status}">${TAG_LABEL[sc.status]}</span></div>`).join('') || '<div class="empty">No scaffolds tagged yet.</div>'}
+      </div>
+      <div class="card">
+        <div style="font-weight:700;margin-bottom:12px;">Jobs</div>
+        ${jobs.map(j=>`<div class="kv"><span class="k">${esc(j.site_name)}</span><span>${j.scheduled_date?.slice(0,10)} · ${esc(j.crew_name)}</span></div>`).join('') || '<div class="empty">No jobs scheduled yet.</div>'}
+      </div>
+    </div>
+  `;
+}
+
+/* ============================================================
+   INIT
+============================================================ */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
+boot();
+</script>
+</body>
+</html>
